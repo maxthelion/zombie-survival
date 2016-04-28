@@ -1,3 +1,4 @@
+var pusher
 var playerSprite = {
   coords: {
     x: 250,
@@ -46,9 +47,31 @@ var miniViewPort = {
   offsetY: 0,
   scale: 0.1
 }
+var isHost = true
 var gameInterval
 $().ready(function(){
+  pusher = new PusherNG({
+    jwt: "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIiwidiI6IjEuMCJ9.eyJqdGkiOiJmYmMwOTU4ZS04OWRmLTRhOWEtYWFmMC01MjdhMWE5ZDc3ZDMiLCJzZWMiOiJmMzM5NWQwZGEwNzI1ZDE3MDJiZTRhNGYxYmI5NjA0NyIsInVybCI6Ii1hbHBoYS5sYWJzLnB1c2hlci5pby9hY2NvdW50cy8xLyIsInJlcyI6eyJkYi96b21iaWVzLyoqLyoiOlstMV19fQ."
+  });
   //initialize stuff
+  var loot = pusher.db.subscribe("zombies/loot2/?levels=-1")
+  loot.on("changed", function(path){
+    var newLoot = loot.child(path[0]);
+    var freshness = newLoot.child("freshness").value()
+    var x = newLoot.child("coords/x").value()
+    var y = newLoot.child("coords/y").value()
+    if (freshness !== undefined && x !== undefined && y !== undefined) {
+      sprites.loot.push({
+        id: path[0],
+        version: newLoot.version(),
+        freshness: freshness,
+        coords: {
+          x: x,
+          y: y
+        }
+      })
+    }
+  })
   ctx = document.getElementById('canvas').getContext('2d');
   minictx = document.getElementById('minimap').getContext('2d');
   playerSpriteImg = new Image();
@@ -153,21 +176,27 @@ function handleKeyUp(event){
 }
 
 function addLootSprites(){
-  var regionSize = 10000
-  var dropSize = 1000
-  var numLoot = 5
-  var dropArea = {
-    x: Math.round(Math.random() * regionSize) - regionSize/2,
-    y: Math.round(Math.random() * regionSize) - regionSize/2
-  }
-  for (var i = 0; i < numLoot; i++) {
-    sprites.loot.push({
-      coords: {
-        x: Math.round( Math.random() * dropSize ) - dropSize/2 + dropArea.x,
-        y: Math.round( Math.random() * dropSize ) - dropSize/2 + dropArea.y
-      },
-      freshness: defaultFreshness + Math.round( Math.random() * freshnessVariation )
-    })
+  if (isHost){
+    var regionSize = 10000
+    var dropSize = 1000
+    var numLoot = 5
+    var dropArea = {
+      x: Math.round(Math.random() * regionSize) - regionSize/2,
+      y: Math.round(Math.random() * regionSize) - regionSize/2
+    }
+    dropLocations.push(dropArea)
+    for (var i = 0; i < numLoot; i++) {
+      var newLoot = {
+        coords: {
+          x: Math.round( Math.random() * dropSize ) - dropSize/2 + dropArea.x,
+          y: Math.round( Math.random() * dropSize ) - dropSize/2 + dropArea.y
+        },
+        freshness: defaultFreshness + Math.round( Math.random() * freshnessVariation )
+      }
+      var lootID = Date.now().toString() + Math.floor(Math.random() * 100000)
+      console.log(lootID)
+      pusher.db.node("zombies/loot2").child(lootID).replace(newLoot)
+    }
   }
 }
 
@@ -253,7 +282,6 @@ function expireLoot(){
     if(loot.freshness >= 1){
       loot.freshness -= 1
     } else {
-      console.log("expire")
       sprites.loot.splice(index, 1)
     }
   })
@@ -296,7 +324,12 @@ function calculateRemaining(){
   }
 }
 
-function addLoot(){
+function addLoot(loot){
+  if (!loot.looted) {
+  pusher.db.node("zombies/loot2").child(loot.id).delete(function() {
+    console.log(arguments)
+  });
+}
   player.timeRemaining += medPak.health
 }
 
@@ -305,8 +338,9 @@ function calculateCollisions(){
   sprites.loot.forEach(function(lootSprite){
     if (Math.abs(playerSprite.coords.x - lootSprite.coords.x) < 40 &&
       Math.abs(playerSprite.coords.y - lootSprite.coords.y) < 40){
-      var looted = sprites.loot.splice(i, 1)
-      addLoot(looted)
+      //var looted = sprites.loot.splice(i, 1)
+      addLoot(lootSprite)
+        lootSprite.looted = true;
     }
     i++
   })
