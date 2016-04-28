@@ -23,9 +23,11 @@ var dispatcher = []
 var fullHealth = 1000 //used?
 var defaultTime = 1000
 var moves = {x: 0, y: 0}
-var speed = 10
+var speed = 20
 var tick
 var welcomeDuration = 100
+var medPak = {}
+medPak.health = 20
 var viewPort = {
   width: 700,
   height: 700,
@@ -33,7 +35,6 @@ var viewPort = {
   offsetY: 0,
   scale: 1
 }
-
 var miniViewPort = {
   width: 200,
   height: 200,
@@ -149,11 +150,17 @@ function handleKeyUp(event){
 
 function addLootSprites(){
   var regionSize = 10000
-  for (var i = 0; i < 50; i++) {
+  var dropSize = 1000
+  var numLoot = 5
+  var dropArea = {
+    x: Math.round(Math.random() * regionSize) - regionSize/2,
+    y: Math.round(Math.random() * regionSize) - regionSize/2
+  }
+  for (var i = 0; i < numLoot; i++) {
     sprites.loot.push({
       coords: {
-        x: Math.round(Math.random() * regionSize) - regionSize/2,
-        y: Math.round(Math.random() * regionSize) - regionSize/2
+        x: Math.round( Math.random() * dropSize ) - dropSize/2 + dropArea.x,
+        y: Math.round( Math.random() * dropSize ) - dropSize/2 + dropArea.y
       }
     })
   }
@@ -180,6 +187,10 @@ function gameTick(){
     $('#welcomeScreen').css("opacity", 1 - tick / welcomeDuration)
   } else if (tick > 98){
     $('#welcomeScreen').remove()
+  }
+  if (Math.round(Math.random() * 500) == tick % 500 ){
+    addLootSprites()
+    $("body").append("Medkit drop!")
   }
   render()
   tick += 1
@@ -266,7 +277,7 @@ function calculateRemaining(){
 }
 
 function addLoot(){
-  player.timeRemaining += 100
+  player.timeRemaining += medPak.health
 }
 
 function calculateCollisions(){
@@ -323,6 +334,6 @@ function calculateMiniLocalCoords(coords, viewPort, parentViewPort){
 }
 
 function localScale(distance, parentViewPort){
-  var renderDistance = 20000
+  var renderDistance = 50000
   return distance * parentViewPort.width / renderDistance
 }
