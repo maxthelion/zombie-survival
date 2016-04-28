@@ -60,6 +60,8 @@ function startGame(){
   addLootSprites()
   player.timeRemaining = 1000
   gameInterval = setInterval(gameTick, 50)
+  tick = 0
+  $('#welcomeScreen').css("opacity", 1)
 }
 
 function endGame(){
@@ -133,14 +135,18 @@ function movePlayerSprite(dir){
   }
 }
 
-
+var tick
+var welcomeDuration = 100
 function gameTick(){
   calculateRemaining()
   calculatePlayerMoves()
   calculateCollisions()
   ctx.clearRect(0, 0, viewPort.width, viewPort.height)
-  // $('#welcomeScreen').opacity()
+  if (tick < welcomeDuration){
+    $('#welcomeScreen').css("opacity", 1 - tick / welcomeDuration)
+  }
   render()
+  tick += 1
 }
 function render(){
   var remainingPercent = Math.round( ( player.timeRemaining / fullHealth ) * 100 )
@@ -233,6 +239,6 @@ function calculateMiniLocalCoords(coords, viewPort, parentViewPort){
 }
 
 function localScale(distance, parentViewPort){
-  var renderDistance = 50000
+  var renderDistance = 20000
   return distance * parentViewPort.width / renderDistance
 }
