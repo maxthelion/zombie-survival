@@ -19,15 +19,17 @@
 #deathScreen {
   position: absolute;
   left: 50px;
-  top: 200px;
+  top: 150px;
   width:600px;
-  height: 350px;
+  height: 500px;
   font-size: 2em;
   text-align: center;
   background: #99961C;
 }
 #welcomeScreen {
   position: absolute;
+  font-size: 2em;
+  color: #fff;
   left: 50px;
   top: 100px;
   width:600px;

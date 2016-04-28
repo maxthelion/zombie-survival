@@ -20,8 +20,12 @@ var chunks = [
 var ctx
 var playerSpriteImg
 var dispatcher = []
-var fullHealth = 1000
+var fullHealth = 1000 //used?
+var defaultTime = 1000
 var moves = {x: 0, y: 0}
+var speed = 10
+var tick
+var welcomeDuration = 100
 var viewPort = {
   width: 700,
   height: 700,
@@ -76,15 +80,16 @@ function startGame(){
   addWelcomeMsg()
   addLootSprites()
   addDirtSprites()
-  player.timeRemaining = 1000
-  gameInterval = setInterval(gameTick, 50)
-  tick = 0
+  player.timeRemaining = defaultTime
   $('#welcomeScreen').css("opacity", 1)
+  tick = 0
+  gameInterval = setInterval(gameTick, 50)
 }
 
 function endGame(){
   var deathScreen = $("<div id=\"deathScreen\"><h2> You turned into a zombie!</h2></div>")
   deathScreen.append("<p>You survived for a duration of " + player.timeElapsed + "</p>" )
+  deathScreen.append("<img src=\"images/genericZombieMale.png\"/>" )
   var startButton = $("<a id=\"startBtn\" href=\"#\">Start again!</a>")
   startButton.click(function(){
     $("#deathScreen").remove();
@@ -166,10 +171,6 @@ function addDirtSprites(){
   }
 }
 
-var speed = 20
-
-var tick
-var welcomeDuration = 100
 function gameTick(){
   calculateRemaining()
   calculatePlayerMoves()
@@ -177,6 +178,8 @@ function gameTick(){
   ctx.clearRect(0, 0, viewPort.width, viewPort.height)
   if (tick < welcomeDuration){
     $('#welcomeScreen').css("opacity", 1 - tick / welcomeDuration)
+  } else if (tick > 98){
+    $('#welcomeScreen').remove()
   }
   render()
   tick += 1
@@ -228,9 +231,12 @@ function drawPlayerSprite(){
 function drawGrass(){
   var widthTiles = (viewPort.width / 64) + 1
   var heightTiles = (viewPort.height / 64) + 1
-  for (var x = 0; x < widthTiles; x++) {
-    for (var y = 0; y < heightTiles; y++) {
-      ctx.drawImage(grassImg, x * 64 - (64 - playerSprite.coords.x % 64), y * 64 - (64 - playerSprite.coords.y % 64))
+  for (var x = -1; x < widthTiles; x++) {
+    for (var y = -1; y < heightTiles; y++) {
+      ctx.drawImage(grassImg, 
+        x * 64 - (playerSprite.coords.x % 64), 
+        y * 64 - (playerSprite.coords.y % 64)
+      )
     }
   }
 }
