@@ -101,7 +101,7 @@ function endGame(){
     startGame()
   })
   deathScreen.append(startButton)
-  $("body").append(deathScreen)
+  $("#container").append(deathScreen)
   clearInterval(gameInterval)
 }
 
@@ -110,7 +110,7 @@ function addWelcomeMsg(){
   welcomeScren.append("<p>Your only hope is to collect and use the vaccines (<img src=\"images/medpak.png\">) that have been airdropped into this area. They have a very temporary effect though!</p>" )
   welcomeScren.append("<p>Use the arrow keys to move, and consult the map on the right for the locations of the medpaks.</p>" )
   welcomeScren.append("<p><strong>We hope you don't run <i>OUT OF TIME!!!</i></strong></p>" )
-  $("body").append(welcomeScren)
+  $("#container").append(welcomeScren)
 }
 
 var moveKeys = {}

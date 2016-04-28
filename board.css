@@ -1,5 +1,7 @@
 * {
   font-family: arial;
+  margin: 0;
+  padding: 0;
 }
 #timeRemainingIndicator {
   background: red;
@@ -9,9 +11,12 @@
 }
 #minimap {
   background: #9FD69E;
+}
+#side {
   position: absolute;
   left: 710px;
   top: 0;
+  
 }
 #canvas {
   background: #6B9959;
@@ -44,4 +49,9 @@
   padding: .5em;
   margin: auto;
   text-decoration: none;
+}
+#container {
+  width: 900px;
+  margin: auto;
+  position: relative;
 }
