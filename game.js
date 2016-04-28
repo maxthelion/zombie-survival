@@ -27,6 +27,9 @@ var speed = 20
 var tick
 var welcomeDuration = 100
 var medPak = {}
+var defaultFreshness = 300
+var freshnessVariation = 150
+var nextDrop = 100
 medPak.health = 20
 var viewPort = {
   width: 700,
@@ -161,7 +164,8 @@ function addLootSprites(){
       coords: {
         x: Math.round( Math.random() * dropSize ) - dropSize/2 + dropArea.x,
         y: Math.round( Math.random() * dropSize ) - dropSize/2 + dropArea.y
-      }
+      },
+      freshness: defaultFreshness + Math.round( Math.random() * freshnessVariation )
     })
   }
 }
@@ -181,6 +185,7 @@ function addDirtSprites(){
 function gameTick(){
   calculateRemaining()
   calculatePlayerMoves()
+  expireLoot()
   calculateCollisions()
   ctx.clearRect(0, 0, viewPort.width, viewPort.height)
   if (tick < welcomeDuration){
@@ -188,8 +193,9 @@ function gameTick(){
   } else if (tick > 98){
     $('#welcomeScreen').remove()
   }
-  if (Math.round(Math.random() * 400) == tick % 400 ){
+  if (nextDrop == tick ){
     addLootSprites()
+    nextDrop = tick + 200 + Math.round(Math.random() * 50)
     $("body").append("Medkit drop!")
   }
   render()
@@ -201,6 +207,7 @@ function render(){
   $('#timeRemainingIndicator').text( remainingPercent )
   $('#timeRemainingIndicator').css("width",  remainingPercent + "%")
   $('#timeElapsedIndicator').html(player.timeElapsed)
+  $('#nextDropIndicator').text(nextDrop - tick)
   drawGrass()
   sprites.dirt.forEach(function(dirtSprite){
     var c = calculateLocalCoords(dirtSprite.coords, viewPort)
@@ -237,6 +244,18 @@ function drawPlayerSprite(){
     var clipY = 0
   var c = calculateLocalCoords(playerSprite.coords, viewPort)
   ctx.drawImage(playerSpriteImg, clipX, clipY, 50, 55, c.x, c.y, 50, 60)
+}
+
+function expireLoot(){
+  sprites.loot.forEach(function(loot, index){
+
+    if(loot.freshness >= 1){
+      loot.freshness -= 1
+    } else {
+      console.log("expire")
+      sprites.loot.splice(index, 1)
+    }
+  })
 }
 
 function drawGrass(){
