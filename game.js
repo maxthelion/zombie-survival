@@ -30,7 +30,8 @@ var medPak = {}
 var defaultFreshness = 300
 var freshnessVariation = 150
 var nextDrop = 100
-medPak.health = 20
+medPak.health = 50
+
 var viewPort = {
   width: 700,
   height: 700,
