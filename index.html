@@ -1,0 +1,30 @@
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.21/vue.min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="game.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="board.css" type="text/css" media="screen">
+</head>
+  <body>
+    <div>
+      <table>
+        <tr>
+        <td width="20%">Remaining</td>
+        <td width="80%" id="timeRemainingHolder"><div id="timeRemainingIndicator">&nbsp;</div></td>
+        </tr>
+      </table>
+      <table>
+        <tr>
+        <td width="20%">Elapsed</td>
+        <td><div id="timeElapsedIndicator"></div></td>
+        </tr>
+      </table>
+    </div>
+    <canvas id="canvas" width=700 height=700></canvas>
+    <div>
+      <canvas id="minimap" width=200 height=200></canvas>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+* {
+  font-family: arial;
+}
+#timeRemainingIndicator {
+  background: red;
+}
+#timeRemainingHolder {
+  border: 1px solid black;
+}
+#minimap {
+  background: #9FD69E;
+  position: absolute;
+  left: 710px;
+  top: 0;
+}
+#canvas {
+  background: #6B9959;
+}
+#deathScreen {
+  position: absolute;
+  left: 50px;
+  top: 200px;
+  width:600px;
+  height: 350px;
+  font-size: 2em;
+  text-align: center;
+  background: #99961C;
+}
+#welcomeScreen {
+  position: absolute;
+  left: 50px;
+  top: 100px;
+  width:600px;
+  height: 450px;
+  text-align: center;
+}
+#startBtn {
+  background: #823400;
+  color: #C8FF00;
+  display: block;
+  width: 200px;
+  padding: .5em;
+  margin: auto;
+  text-decoration: none;
+}
