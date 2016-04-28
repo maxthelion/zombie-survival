@@ -188,7 +188,7 @@ function gameTick(){
   } else if (tick > 98){
     $('#welcomeScreen').remove()
   }
-  if (Math.round(Math.random() * 500) == tick % 500 ){
+  if (Math.round(Math.random() * 400) == tick % 400 ){
     addLootSprites()
     $("body").append("Medkit drop!")
   }
