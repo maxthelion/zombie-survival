@@ -416,7 +416,7 @@ function calculatePlayerMoves(){
   playerSprite.coords.y += moves.y
 }
 
-var frameTime = 0.5
+var frameTime = 1
 function calculateRemaining(){
   player.immunity -= frameTime
   player.timeElapsed += 1
