@@ -27,7 +27,7 @@ var defaultTime = 1000
 var moves = {x: 0, y: 0}
 var speed = 20
 var tick
-var welcomeDuration = 100
+var welcomeDuration = 50
 var medPak = {}
 var defaultFreshness = 300
 var freshnessVariation = 150
@@ -205,11 +205,7 @@ function gameTick(){
   expireLoot()
   calculateCollisions()
   ctx.clearRect(0, 0, viewPort.width, viewPort.height)
-  if (tick < welcomeDuration){
-    $('#welcomeScreen').css("opacity", 1 - tick / welcomeDuration)
-  } else if (tick > 98){
-    $('#welcomeScreen').remove()
-  }
+  fadeWelcome()
   if (nextDrop == tick ){
     addLootSprites()
     nextDrop = tick + 200 + Math.round(Math.random() * 50)
@@ -249,6 +245,13 @@ function render(){
   drawLocators()
 }
 
+function fadeWelcome(){
+  if (tick < welcomeDuration){
+    $('#welcomeScreen').css("opacity", 1 - tick / welcomeDuration)
+  } else if (tick > 98){
+    $('#welcomeScreen').remove()
+  }
+}
 function drawZombies(){
   sprites.zombies.forEach(function(zombie){
     var width = 32
@@ -420,12 +423,12 @@ function addLoot(loot){
 }
 
 function removeLoot(oldLoot){
+  var dropLocation = oldLoot.dropLocation
   sprites.loot.forEach(function(loot, index){
     if (loot == oldLoot){
       sprites.loot.splice(index, 1)
     }
   })
-  var dropLocation = oldLoot.dropLocation
   dropLocation.availableDrops -= 1
   if (dropLocation.availableDrops == 0){
     removeDroplocation(dropLocation)
@@ -449,8 +452,7 @@ function calculateCollisions(){
   sprites.loot.forEach(function(lootSprite){
     if (Math.abs(playerSprite.coords.x - lootSprite.coords.x) < 40 &&
       Math.abs(playerSprite.coords.y - lootSprite.coords.y) < 40){
-      var looted = sprites.loot.splice(i, 1)
-      addLoot(looted)
+      addLoot(lootSprite)
     }
     i++
   })
@@ -484,7 +486,7 @@ function drawLocators(){
       ctx.rotate(angle)
       var width = 64
       var height = 64
-      ctx.drawImage(pointerImg, 0 - width / 2, 200)
+      ctx.drawImage(pointerImg, 0 - width / 2, ( length / regionSize ) * 200 + 30)
       ctx.restore()
     }
   })
