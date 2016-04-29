@@ -23,6 +23,7 @@ var freshnessVariation = 150
 var nextDrop = 100
 var regionSize = 10000
 var defaultZombieSpeed = 5
+var defaultZombieAttack = 20
 medPak.health = 50
 
 var viewPort = {
@@ -183,7 +184,7 @@ function addZombieSprites(){
       sprite: 0,
       speed: defaultZombieSpeed,
       moves: {x: 0, y: 0},
-      attackValue: 3,
+      attackValue: defaultZombieAttack,
       coords: {
         x: Math.round(Math.random() * regionSize) - regionSize/2,
         y: Math.round(Math.random() * regionSize) - regionSize/2
