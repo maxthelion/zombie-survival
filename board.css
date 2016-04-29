@@ -16,7 +16,13 @@
   position: absolute;
   left: 710px;
   top: 0;
-  
+}
+body {
+  background: #133517;
+}
+#container {
+  background: #50512e;
+  border: 3px solid black;
 }
 #canvas {
   background: #6B9959;

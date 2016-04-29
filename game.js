@@ -7,7 +7,8 @@ var playerSprite = {
 var sprites = {
   players: [],
   loot: [],
-  dirt: []
+  dirt: [],
+  zombies: []
 }
 
 var player = {
@@ -17,6 +18,7 @@ var player = {
 var chunks = [
   []
 ]
+var dropLocations = []
 var ctx
 var playerSpriteImg
 var dispatcher = []
@@ -30,6 +32,7 @@ var medPak = {}
 var defaultFreshness = 300
 var freshnessVariation = 150
 var nextDrop = 100
+var regionSize = 10000
 medPak.health = 50
 
 var viewPort = {
@@ -46,34 +49,26 @@ var miniViewPort = {
   offsetY: 0,
   scale: 0.1
 }
+
 var gameInterval
 $().ready(function(){
   //initialize stuff
   ctx = document.getElementById('canvas').getContext('2d');
   minictx = document.getElementById('minimap').getContext('2d');
   playerSpriteImg = new Image();
-  playerSpriteImg.onload = function(){
-    imagesReady = true
-  };
-  playerSpriteImg.src = 'images/raza54bbig1_1.png';
+  playerSpriteImg.src = 'images/nerdguy_sprites.png';
+  
+  zombieSpriteImg = new Image();
+  zombieSpriteImg.src = 'images/zombie_sprites.png';
   
   medPakImg = new Image();
-  medPakImg.onload = function(){
-    imagesReady = true
-  };
   medPakImg.src = 'images/medpak.png';
   
-  grassImg = new Image();
-  grassImg.onload = function(){
-    imagesReady = true
-  };
-  grassImg.src = 'images/grass_tile.jpg';
+  pointerImg = new Image();
+  pointerImg.src = 'images/pointer.png';
   
-  dirtImg = new Image();
-  dirtImg.onload = function(){
-    imagesReady = true
-  };
-  dirtImg.src = 'images/grass_dirt_tile.jpg';
+  grassImg = new Image();
+  grassImg.src = 'images/grass_tile.jpg';
   
   $(document).keydown( handleKeyDown )
   $(document).keyup( handleKeyUp )
@@ -85,6 +80,7 @@ function startGame(){
   addWelcomeMsg()
   addLootSprites()
   addDirtSprites()
+  addZombieSprites()
   player.timeRemaining = defaultTime
   $('#welcomeScreen').css("opacity", 1)
   tick = 0
@@ -153,26 +149,44 @@ function handleKeyUp(event){
 }
 
 function addLootSprites(){
-  var regionSize = 10000
   var dropSize = 1000
   var numLoot = 5
   var dropArea = {
     x: Math.round(Math.random() * regionSize) - regionSize/2,
     y: Math.round(Math.random() * regionSize) - regionSize/2
   }
+  var dropLocation = { coords: dropArea, availableDrops: numLoot }
+  dropLocations.push(dropLocation)
   for (var i = 0; i < numLoot; i++) {
     sprites.loot.push({
       coords: {
         x: Math.round( Math.random() * dropSize ) - dropSize/2 + dropArea.x,
         y: Math.round( Math.random() * dropSize ) - dropSize/2 + dropArea.y
       },
-      freshness: defaultFreshness + Math.round( Math.random() * freshnessVariation )
+      dropLocation: dropLocation,
+      freshness: defaultFreshness + Math.round( Math.random() * freshnessVariation ),
+      health: medPak.health
+    })
+  }
+}
+
+function addZombieSprites(){
+  for (var i = 0; i < 100; i++) {
+    sprites.zombies.push({
+      health: 20,
+      sprite: 0,
+      speed: 10,
+      moves: {x: 0, y: 0},
+      attackValue: 1,
+      coords: {
+        x: Math.round(Math.random() * regionSize) - regionSize/2,
+        y: Math.round(Math.random() * regionSize) - regionSize/2
+      }
     })
   }
 }
 
 function addDirtSprites(){
-  var regionSize = 10000
   for (var i = 0; i < 1000; i++) {
     sprites.dirt.push({
       coords: {
@@ -184,8 +198,10 @@ function addDirtSprites(){
 }
 
 function gameTick(){
+  player.beingAttacked = false
   calculateRemaining()
   calculatePlayerMoves()
+  calculateZombieMoves()
   expireLoot()
   calculateCollisions()
   ctx.clearRect(0, 0, viewPort.width, viewPort.height)
@@ -212,49 +228,101 @@ function render(){
   drawGrass()
   sprites.dirt.forEach(function(dirtSprite){
     var c = calculateLocalCoords(dirtSprite.coords, viewPort)
-    ctx.drawImage(dirtImg, c.x, c.y)
+    var clipX = 64 * 1
+    var clipY = 0
+    ctx.drawImage(grassImg, clipX, clipY, 64, 64, c.x, c.y, 64, 64)
   })
   sprites.loot.forEach(function(lootSprite){
     var c = calculateLocalCoords(lootSprite.coords, viewPort)
     ctx.drawImage(medPakImg, c.x, c.y)
   })
-  drawPlayerSprite()
+  drawZombies()
   drawMiniMap()
+  if (player.beingAttacked == true){
+    ctx.fillStyle= "rgba(256, 0, 0, "+ 0.3 +")"
+  } else {
+    ctx.fillStyle= "rgba(0, 0, 0, "+ (1 - remainingPercent / 100) +")"
+  }
+  ctx.fillRect(0,0, viewPort.width, viewPort.height)
+  
+  drawPlayerSprite()
+  drawLocators()
 }
-var dir = "down"
-function drawPlayerSprite(){
-  var clipX = 0
-  var clipY = 250
-  if (moves.y < 0 && moves.x == 0 ){
-    var clipX = 45
-    var clipY = 0
-  } 
-  if (moves.y > 0 && moves.x == 0 ){
+
+function drawZombies(){
+  sprites.zombies.forEach(function(zombie){
+    var width = 32
+    var height = 32
     var clipX = 0
     var clipY = 0
+    if (zombie.moves){
+      if (zombie.moves.x == 0 && zombie.moves.y == 0){
+        var clipX = 0
+        var clipY = 2 * height
+      } else {
+        var i = tick % 3
+        var clipX = i * width
+        // left
+        if (zombie.moves.y < 0 ){
+          var clipY = 1 * height
+        } 
+        // right
+        if (zombie.moves.y > 0 ){
+          var clipY = 2 * height
+        }
+        // up
+        if (zombie.moves.x < 0 && zombie.moves.y == 0 ){
+          var clipY = 3 * height
+        } 
+        // down 
+        if (zombie.moves.x > 0 && zombie.moves.y == 0 ){
+          var clipY = 0
+        } 
+      }
+    }
+    var c = calculateLocalCoords(zombie.coords, viewPort)
+    ctx.drawImage(zombieSpriteImg, clipX, clipY, width, height, c.x, c.y, 50, 60)
+  }) 
+}
+
+var dir = "down"
+function drawPlayerSprite(){
+  var width = 68
+  var height = 92
+  if (moves.x == 0 && moves.y == 0){
+    var clipX = 0
+    var clipY = 2 * height
+  } else {
+    var i = tick % 3
+    var clipX = i * width
+    // left
+    if (moves.y < 0 ){
+      var clipY = 0
+    } 
+    // right
+    if (moves.y > 0 ){
+      var clipY = 2 * 92
+    }
+    // up
+    if (moves.x < 0 && moves.y == 0 ){
+      var clipY = 3 * 92
+    } 
+    // down 
+    if (moves.x > 0 && moves.y == 0 ){
+      var clipY = 1 * 92
+    } 
   }
-  if (moves.x < 0 && moves.y == 0 ){
-    var clipX = 140
-    var clipY = 0
-  } 
-  if (moves.x > 0 && moves.y == 0 ){
-    var clipX = 90
-    var clipY = 0
-  }     
-  // if (moves.y < 0)
-    var clipY = 0
+
   var c = calculateLocalCoords(playerSprite.coords, viewPort)
-  ctx.drawImage(playerSpriteImg, clipX, clipY, 50, 55, c.x, c.y, 50, 60)
+  ctx.drawImage(playerSpriteImg, clipX, clipY, 68, 92, c.x - width /2, c.y- height /2, 50, 60)
 }
 
 function expireLoot(){
   sprites.loot.forEach(function(loot, index){
-
     if(loot.freshness >= 1){
       loot.freshness -= 1
     } else {
-      console.log("expire")
-      sprites.loot.splice(index, 1)
+      removeLoot(loot)
     }
   })
 }
@@ -272,6 +340,56 @@ function drawGrass(){
   }
 }
 
+function calculateZombieMoves(){
+  moves = {x: 0, y: 0}
+  if (moveKeys.left)
+    moves.x -= speed;
+  if (moveKeys.right)
+    moves.x += speed;
+  if (moveKeys.up)
+    moves.y -= speed
+  if (moveKeys.down)
+    moves.y += speed
+    
+  playerSprite.coords.x += moves.x
+  playerSprite.coords.y += moves.y
+    
+  var i = 0;
+  sprites.zombies.forEach(function(zombieSprite){
+    zombieSprite.moves.x = 0
+    zombieSprite.moves.y = 0
+    zombieSprite.attacking = false
+    if (
+        Math.abs(playerSprite.coords.x - zombieSprite.coords.x) < viewPort.width / 2 &&
+        Math.abs(playerSprite.coords.y - zombieSprite.coords.y) < viewPort.width / 2 ){
+      if (
+          Math.abs(playerSprite.coords.x - zombieSprite.coords.x) < 50 &&
+          Math.abs(playerSprite.coords.y - zombieSprite.coords.y) < 50 ){
+        // too close 
+        zombieSprite.attacking = true
+      } else {
+        if ( playerSprite.coords.x > zombieSprite.coords.x) {
+          zombieSprite.moves.x = 1
+          zombieSprite.coords.x += zombieSprite.speed
+        } else if ( playerSprite.coords.x < zombieSprite.coords.x) {
+          zombieSprite.moves.x = -1
+          zombieSprite.coords.x -= zombieSprite.speed
+        } 
+        if ( playerSprite.coords.y < zombieSprite.coords.y) {
+          zombieSprite.moves.y = -1
+          zombieSprite.coords.y -= zombieSprite.speed
+        } else if ( playerSprite.coords.y > zombieSprite.coords.y) {
+          zombieSprite.moves.y = 1
+          zombieSprite.coords.y += zombieSprite.speed
+        }
+      }
+    }
+    if (zombieSprite.attacking == true) {
+      attackPlayer(zombieSprite)
+    }
+    i++
+  })
+}
 function calculatePlayerMoves(){
   moves = {x: 0, y: 0}
   if (moveKeys.left)
@@ -296,8 +414,34 @@ function calculateRemaining(){
   }
 }
 
-function addLoot(){
-  player.timeRemaining += medPak.health
+function addLoot(loot){
+  player.timeRemaining += loot.health
+  removeLoot(loot)
+}
+
+function removeLoot(oldLoot){
+  sprites.loot.forEach(function(loot, index){
+    if (loot == oldLoot){
+      sprites.loot.splice(index, 1)
+    }
+  })
+  var dropLocation = oldLoot.dropLocation
+  dropLocation.availableDrops -= 1
+  if (dropLocation.availableDrops == 0){
+    removeDroplocation(dropLocation)
+  }
+}
+function removeDroplocation(oldDropLocation){
+  dropLocations.forEach(function(dropLocation, index){
+    if (dropLocation == oldDropLocation){
+      dropLocations.splice(index, 1)
+    }
+  })
+}
+
+function attackPlayer(zombieSprite){
+  player.timeRemaining -= zombieSprite.attackValue
+  player.beingAttacked = true
 }
 
 function calculateCollisions(){
@@ -313,16 +457,37 @@ function calculateCollisions(){
 }
 
 function drawMiniMap(){
-  minictx.clearRect(0,0, 200, 200)
+  minictx.clearRect(0,0, miniViewPort.width, miniViewPort.height)
   sprites.loot.forEach(function(lootSprite){
-    minictx.fillStyle = "rgb(256, 0, 0)"
+    minictx.fillStyle = "rgb(0, 150, 0)"
     var localCoords = calculateMiniLocalCoords( lootSprite.coords, miniViewPort, viewPort)
     minictx.fillRect(localCoords.x, localCoords.y, 2, 2)
   })
+  
   drawViewPortOnMini()
   var localCoords = calculateMiniLocalCoords( playerSprite.coords, miniViewPort, viewPort)
   minictx.fillStyle = "rgb(0, 0, 0)"
   minictx.fillRect(localCoords.x, localCoords.y, 2, 2)
+}
+
+function drawLocators(){
+  dropLocations.forEach(function(dropLocation){
+    var x1 = dropLocation.coords.x
+    var y1 = dropLocation.coords.y
+    var x2 = playerSprite.coords.x
+    var y2 = playerSprite.coords.y
+    var length = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+    var angle  = Math.atan2(y2 - y1, x2 - x1) + ( Math.PI / 2);
+    if (length > 300){
+      ctx.save()
+      ctx.translate(viewPort.width / 2, viewPort.height / 2)
+      ctx.rotate(angle)
+      var width = 64
+      var height = 64
+      ctx.drawImage(pointerImg, 0 - width / 2, 200)
+      ctx.restore()
+    }
+  })
 }
 
 function calculateLocalCoords(coords, viewPort){
