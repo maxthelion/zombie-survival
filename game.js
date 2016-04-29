@@ -4,25 +4,14 @@ var playerSprite = {
     y: 250
   }
 }
-var sprites = {
-  players: [],
-  loot: [],
-  dirt: [],
-  zombies: []
-}
-
-var player = {
-  timeRemaining: 0,
-  timeElapsed: 0
-}
-var chunks = [
-  []
-]
+var sprites = {}
+var player = {}
 var dropLocations = []
 var ctx
 var playerSpriteImg
 var dispatcher = []
-var fullHealth = 1000 //used?
+var fullHealth = 1000
+var fullImmunity = 1000
 var defaultTime = 1000
 var moves = {x: 0, y: 0}
 var speed = 20
@@ -33,6 +22,7 @@ var defaultFreshness = 300
 var freshnessVariation = 150
 var nextDrop = 100
 var regionSize = 10000
+var defaultZombieSpeed = 5
 medPak.health = 50
 
 var viewPort = {
@@ -48,6 +38,22 @@ var miniViewPort = {
   offsetX: 0,
   offsetY: 0,
   scale: 0.1
+}
+
+function initGameVars(){
+  player = {
+    timeRemaining: 0,
+    timeElapsed: 0,
+    health: fullHealth,
+    immunity: fullImmunity
+  }
+  sprites = {
+    loot: [],
+    dirt: [],
+    zombies: []
+  }
+  dropLocations = []
+  nextDrop = 100
 }
 
 var gameInterval
@@ -78,10 +84,10 @@ $().ready(function(){
 
 function startGame(){
   addWelcomeMsg()
+  initGameVars()
   addLootSprites()
   addDirtSprites()
   addZombieSprites()
-  player.timeRemaining = defaultTime
   $('#welcomeScreen').css("opacity", 1)
   tick = 0
   gameInterval = setInterval(gameTick, 50)
@@ -175,9 +181,9 @@ function addZombieSprites(){
     sprites.zombies.push({
       health: 20,
       sprite: 0,
-      speed: 10,
+      speed: defaultZombieSpeed,
       moves: {x: 0, y: 0},
-      attackValue: 1,
+      attackValue: 3,
       coords: {
         x: Math.round(Math.random() * regionSize) - regionSize/2,
         y: Math.round(Math.random() * regionSize) - regionSize/2
@@ -216,9 +222,10 @@ function gameTick(){
 }
 
 function render(){
-  var remainingPercent = Math.round( ( player.timeRemaining / fullHealth ) * 100 )
-  $('#timeRemainingIndicator').text( remainingPercent )
+  var remainingPercent = Math.round( ( player.immunity / fullImmunity ) * 100 )
   $('#timeRemainingIndicator').css("width",  remainingPercent + "%")
+  var remainingHealthPercent = Math.round( ( player.health / fullHealth ) * 100 )
+  $('#healthRemainingIndicator').css("width",  remainingHealthPercent + "%")
   $('#timeElapsedIndicator').html(player.timeElapsed)
   $('#nextDropIndicator').text(nextDrop - tick)
   drawGrass()
@@ -233,15 +240,16 @@ function render(){
     ctx.drawImage(medPakImg, c.x, c.y)
   })
   drawZombies()
-  drawMiniMap()
+  // drawMiniMap()
+  drawPlayerSprite()
   if (player.beingAttacked == true){
     ctx.fillStyle= "rgba(256, 0, 0, "+ 0.3 +")"
   } else {
-    ctx.fillStyle= "rgba(0, 0, 0, "+ (1 - remainingPercent / 100) +")"
+    var opacity = 0.7 - (remainingPercent / 114)
+    ctx.fillStyle = "rgba(0, 0, 0, "+ opacity +")"
   }
   ctx.fillRect(0,0, viewPort.width, viewPort.height)
   
-  drawPlayerSprite()
   drawLocators()
 }
 
@@ -408,12 +416,12 @@ function calculatePlayerMoves(){
   playerSprite.coords.y += moves.y
 }
 
-var frameTime = 1
+var frameTime = 0.5
 function calculateRemaining(){
-  player.timeRemaining -= frameTime
-  player.timeElapsed += frameTime
-  if (player.timeRemaining <= 0 ){
-    endGame()
+  player.immunity -= frameTime
+  player.timeElapsed += 1
+  if (player.immunity <= 0 ){
+    endGame("zombie")
   }
 }
 
@@ -443,7 +451,10 @@ function removeDroplocation(oldDropLocation){
 }
 
 function attackPlayer(zombieSprite){
-  player.timeRemaining -= zombieSprite.attackValue
+  player.health -= zombieSprite.attackValue
+  if (player.health < 1){
+    endGame("died")
+  }
   player.beingAttacked = true
 }
 

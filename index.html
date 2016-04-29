@@ -10,24 +10,27 @@
 </head>
   <body>
     <div id="container">
-    <div>
-      <table>
-        <tr>
-        <td width="20%">Remaining</td>
-        <td width="80%" id="timeRemainingHolder"><div id="timeRemainingIndicator">&nbsp;</div></td>
-        </tr>
-      </table>
-      <table>
-        <tr>
-        <td width="20%">Elapsed</td>
-        <td><div id="timeElapsedIndicator"></div></td>
-        </tr>
-      </table>
+      <div id="main">
+      <p id="intro">Grab the medpaks to hold off the virus!!!</p>
+      <canvas id="canvas" width=700 height=700></canvas>
     </div>
-    <canvas id="canvas" width=700 height=700></canvas>
     <div id="side">
       <canvas id="minimap" width=200 height=200></canvas>
-      <div>Next drop in: <span id="nextDropIndicator"></span></div>
+      <div id="hud">
+        <div><span class="label">Next vaccine-drop</span>: <span id="nextDropIndicator"></span></div>
+        <table width=100%>
+          <tr>
+          <td width="30%"><span class="label">Immunity</span></td>
+          <td width="70%" id="timeRemainingHolder"><div id="timeRemainingIndicator">&nbsp;</div></td>
+          </tr>
+        </table>
+        <table width=100%>
+          <tr>
+          <td width="30%"><span class="label">Health</span></td>
+          <td width="70%" id="healthRemainingHolder"><div id="healthRemainingIndicator">&nbsp;</div></td>
+          </tr>
+        </table>
+      </div>
     </div>
     </div>
   </body>

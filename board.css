@@ -3,19 +3,29 @@
   margin: 0;
   padding: 0;
 }
-#timeRemainingIndicator {
+#timeRemainingIndicator, #healthRemainingIndicator {
   background: red;
 }
-#timeRemainingHolder {
+#timeRemainingHolder, #healthRemainingHolder {
   border: 1px solid black;
 }
 #minimap {
-  background: #9FD69E;
+  background: #00402F;
+}
+#main {
+  width: 700px;
 }
 #side {
-  position: absolute;
-  left: 710px;
-  top: 0;
+  position:absolute;
+  right: 20px;
+  top: 20px;
+  width: 200px;
+}
+#intro {
+  background: #284000;
+  color: #458F00;
+  padding: 5px;
+  font-size: 2em;
 }
 body {
   background: #133517;
@@ -23,6 +33,10 @@ body {
 #container {
   background: #50512e;
   border: 3px solid black;
+  width: 920px;
+  margin: 30px auto;
+  padding: 20px;
+  position: relative;
 }
 #canvas {
   background: #6B9959;
@@ -56,8 +70,7 @@ body {
   margin: auto;
   text-decoration: none;
 }
-#container {
-  width: 900px;
-  margin: auto;
-  position: relative;
+#hud .label {
+  margin-top: 5px;
+  color: #FFE684;
 }
