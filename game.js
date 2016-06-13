@@ -346,7 +346,7 @@ function drawGrass(){
         y: topCornerY + (y * tileHeight)
       }
       var tileIndexCoords = tileIndex(tileCoords) 
-      if (tileAtCoords(tileCoords) === 1){
+      if (tileAtCoords(tileCoords) !== 0){
         var c = calculateLocalCoords({x: tileCoords.x, y: tileCoords.y}, viewPort)
         drawTile(c, tileIndexCoords)
       }
@@ -366,6 +366,7 @@ function tileAtCoords(coords){
 function drawTile(coords, index){
   var cx = 128
   var cy = 128
+  var cell = map[index.x][index.y]
   if (map[index.x -1][index.y] === 0){
     cx = 64
   }
@@ -384,6 +385,18 @@ function drawTile(coords, index){
     coords.x, coords.y,
     tileWidth, tileHeight
   )
+  if (cell === 2){
+    ctx.fillStyle = "rgba(0, 255, 0, 0.2)"
+    ctx.fillRect(coords.x, coords.y, tileWidth, tileHeight)
+  }
+  if (cell === 3){
+    ctx.fillStyle = "rgba(0, 150, 0, 0.2)"
+    ctx.fillRect(coords.x, coords.y, tileWidth, tileHeight)
+  }
+  if (cell === 4){
+    ctx.fillStyle = "rgba(0, 150, 100, 0.2)"
+    ctx.fillRect(coords.x, coords.y, tileWidth, tileHeight)
+  }
 }
 function calculateZombieMoves(){
   var i = 0;
@@ -437,7 +450,7 @@ function calculatePlayerMoves(){
     x: playerSprite.coords.x + moves.x,
     y: playerSprite.coords.y + moves.y
   }
-  if (tileAtCoords(newCoords) === 1){
+  if (tileAtCoords(newCoords) !== 0){
     playerSprite.coords = newCoords
   }
 }
